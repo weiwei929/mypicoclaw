@@ -381,7 +381,7 @@ picoclaw agent -m "Hello"
 
 PRs welcome! The codebase is intentionally small and readable. 🤗
 
-**Roadmap** — Pick an item and [open a PR](https://github.com/HKUDS/picoclaw/pulls)!
+<img src="assets/wechat.png" alt="PicoClaw" width="512">
 
 
 ## 🐛 Troubleshooting
