@@ -158,14 +158,10 @@ picoclaw onboard
 
 **3. Get API Keys**
 
-- **LLM Provider**: [OpenRouter](https://openrouter.ai/keys) · [Zhipu](https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys) · [Anthropic](https://console.anthropic.com) · [OpenAI](https://platform.openai.com)
-- **Web Search** (optional): [Brave Search](https://brave.com/search/api) - Free tier available (2000 requests/month)
-
-> **Note**: See `config.example.json` for a complete configuration template.
-
 - **LLM Provider**: [OpenRouter](https://openrouter.ai/keys) · [Zhipu](https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys) · [Anthropic](https://console.anthropic.com) · [OpenAI](https://platform.openai.com) · [Gemini](https://aistudio.google.com/api-keys)
 - **Web Search** (optional): [Brave Search](https://brave.com/search/api) - Free tier available (2000 requests/month)
 
+> **Note**: See `config.example.json` for a complete configuration template.
 
 **3. Chat**
 
@@ -380,25 +376,6 @@ picoclaw agent -m "Hello"
 | `picoclaw agent` | Interactive chat mode |
 | `picoclaw gateway` | Start the gateway |
 | `picoclaw status` | Show status |
-| `picoclaw channels login` | Link WhatsApp (scan QR) |
-| `picoclaw channels status` | Show channel status |
-
-<details>
-<summary><b>Scheduled Tasks (Cron)</b></summary>
-
-```bash
-# Add a job
-picoclaw cron add --name "daily" --message "Good morning!" --cron "0 9 * * *"
-picoclaw cron add --name "hourly" --message "Check status" --every 3600
-
-# List jobs
-picoclaw cron list
-
-# Remove a job
-picoclaw cron remove <job_id>
-```
-
-</details>
 
 ## 🤝 Contribute & Roadmap
 
