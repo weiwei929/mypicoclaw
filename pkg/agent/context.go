@@ -203,7 +203,7 @@ func (cb *ContextBuilder) BuildMessages(history []providers.Message, summary str
 
 	messages = append(messages, providers.Message{
 		Role:    "user",
-		Content: currentMessage,
+		Content: &currentMessage,
 	})
 
 	return messages
@@ -212,7 +212,7 @@ func (cb *ContextBuilder) BuildMessages(history []providers.Message, summary str
 func (cb *ContextBuilder) AddToolResult(messages []providers.Message, toolCallID, toolName, result string) []providers.Message {
 	messages = append(messages, providers.Message{
 		Role:       "tool",
-		Content:    result,
+		Content:    &result,
 		ToolCallID: toolCallID,
 	})
 	return messages
@@ -221,7 +221,7 @@ func (cb *ContextBuilder) AddToolResult(messages []providers.Message, toolCallID
 func (cb *ContextBuilder) AddAssistantMessage(messages []providers.Message, content string, toolCalls []map[string]interface{}) []providers.Message {
 	msg := providers.Message{
 		Role:    "assistant",
-		Content: content,
+		Content: &content,
 	}
 	// Always add assistant message, whether or not it has tool calls
 	messages = append(messages, msg)

@@ -61,7 +61,7 @@ func (sm *SessionManager) GetOrCreate(key string) *Session {
 func (sm *SessionManager) AddMessage(sessionKey, role, content string) {
 	sm.AddFullMessage(sessionKey, providers.Message{
 		Role:    role,
-		Content: content,
+		Content: &content,
 	})
 }
 

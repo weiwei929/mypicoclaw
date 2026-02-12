@@ -70,14 +70,15 @@ func (sm *SubagentManager) runTask(ctx context.Context, task *SubagentTask) {
 	task.Status = "running"
 	task.Created = time.Now().UnixMilli()
 
+	systemPrompt := "You are a subagent. Complete the given task independently and report the result."
 	messages := []providers.Message{
 		{
 			Role:    "system",
-			Content: "You are a subagent. Complete the given task independently and report the result.",
+			Content: &systemPrompt,
 		},
 		{
 			Role:    "user",
-			Content: task.Task,
+			Content: &task.Task,
 		},
 	}
 

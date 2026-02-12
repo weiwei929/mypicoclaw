@@ -379,7 +379,10 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 		// Build assistant message with tool calls
 		assistantMsg := providers.Message{
 			Role:    "assistant",
-			Content: response.Content,
+			Content: &response.Content,
+		}
+		if response.Content == "" {
+			assistantMsg.Content = nil // Some APIs prefer null when tool_calls is present
 		}
 		for _, tc := range response.ToolCalls {
 			argumentsJSON, _ := json.Marshal(tc.Arguments)
@@ -415,7 +418,7 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 
 			toolResultMsg := providers.Message{
 				Role:       "tool",
-				Content:    result,
+				Content:    &result,
 				ToolCallID: tc.ID,
 			}
 			messages = append(messages, toolResultMsg)
@@ -494,8 +497,8 @@ func formatMessagesForLog(messages []providers.Message) string {
 				}
 			}
 		}
-		if msg.Content != "" {
-			content := utils.Truncate(msg.Content, 200)
+		if msg.Content != nil {
+			content := utils.Truncate(*msg.Content, 200)
 			result += fmt.Sprintf("  Content: %s\n", content)
 		}
 		if msg.ToolCallID != "" {
@@ -552,7 +555,10 @@ func (al *AgentLoop) summarizeSession(sessionKey string) {
 			continue
 		}
 		// Estimate tokens for this message
-		msgTokens := len(m.Content) / 4
+		msgTokens := 0
+		if m.Content != nil {
+			msgTokens = len(*m.Content) / 4
+		}
 		if msgTokens > maxMessageTokens {
 			omitted = true
 			continue
@@ -577,7 +583,7 @@ func (al *AgentLoop) summarizeSession(sessionKey string) {
 
 		// Merge them
 		mergePrompt := fmt.Sprintf("Merge these two conversation summaries into one cohesive summary:\n\n1: %s\n\n2: %s", s1, s2)
-		resp, err := al.provider.Chat(ctx, []providers.Message{{Role: "user", Content: mergePrompt}}, nil, al.model, map[string]interface{}{
+		resp, err := al.provider.Chat(ctx, []providers.Message{{Role: "user", Content: &mergePrompt}}, nil, al.model, map[string]interface{}{
 			"max_tokens":  1024,
 			"temperature": 0.3,
 		})
@@ -609,10 +615,14 @@ func (al *AgentLoop) summarizeBatch(ctx context.Context, batch []providers.Messa
 	}
 	prompt += "\nCONVERSATION:\n"
 	for _, m := range batch {
-		prompt += fmt.Sprintf("%s: %s\n", m.Role, m.Content)
+		content := ""
+		if m.Content != nil {
+			content = *m.Content
+		}
+		prompt += fmt.Sprintf("%s: %s\n", m.Role, content)
 	}
 
-	response, err := al.provider.Chat(ctx, []providers.Message{{Role: "user", Content: prompt}}, nil, al.model, map[string]interface{}{
+	response, err := al.provider.Chat(ctx, []providers.Message{{Role: "user", Content: &prompt}}, nil, al.model, map[string]interface{}{
 		"max_tokens":  1024,
 		"temperature": 0.3,
 	})
@@ -626,7 +636,9 @@ func (al *AgentLoop) summarizeBatch(ctx context.Context, batch []providers.Messa
 func (al *AgentLoop) estimateTokens(messages []providers.Message) int {
 	total := 0
 	for _, m := range messages {
-		total += len(m.Content) / 4 // Simple heuristic: 4 chars per token
+		if m.Content != nil {
+			total += len(*m.Content) / 4 // Simple heuristic: 4 chars per token
+		}
 	}
 	return total
 }

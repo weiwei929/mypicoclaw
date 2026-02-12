@@ -6,8 +6,10 @@ type ToolCall struct {
 	ID        string                 `json:"id"`
 	Type      string                 `json:"type,omitempty"`
 	Function  *FunctionCall          `json:"function,omitempty"`
-	Name      string                 `json:"name,omitempty"`
-	Arguments map[string]interface{} `json:"arguments,omitempty"`
+	// Name and Arguments are used internally for easier tool execution, 
+	// but we omit them from JSON to avoid confusing strict APIs.
+	Name      string                 `json:"-"`
+	Arguments map[string]interface{} `json:"-"`
 }
 
 type FunctionCall struct {
@@ -30,7 +32,7 @@ type UsageInfo struct {
 
 type Message struct {
 	Role       string     `json:"role"`
-	Content    string     `json:"content"`
+	Content    *string    `json:"content,omitempty"`
 	ToolCalls  []ToolCall `json:"tool_calls,omitempty"`
 	ToolCallID string     `json:"tool_call_id,omitempty"`
 }
