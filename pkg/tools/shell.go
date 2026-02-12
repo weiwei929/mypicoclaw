@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -16,26 +17,56 @@ type ExecTool struct {
 	workingDir          string
 	timeout             time.Duration
 	denyPatterns        []*regexp.Regexp
+	warnPatterns        []*regexp.Regexp
 	allowPatterns       []*regexp.Regexp
 	restrictToWorkspace bool
 }
 
 func NewExecTool(workingDir string) *ExecTool {
+	// 🔴 Blocked: immediately rejected, never executed
 	denyPatterns := []*regexp.Regexp{
-		regexp.MustCompile(`\brm\s+-[rf]{1,2}\b`),
-		regexp.MustCompile(`\bdel\s+/[fq]\b`),
-		regexp.MustCompile(`\brmdir\s+/s\b`),
-		regexp.MustCompile(`\b(format|mkfs|diskpart)\b\s`), // Match disk wiping commands (must be followed by space/args)
+		// Destructive file operations
+		regexp.MustCompile(`\brm\s+-[rf]{1,2}\s+/`),               // rm -rf / (root path)
+		regexp.MustCompile(`\bdel\s+/[fq]\b`),                      // Windows del /f
+		regexp.MustCompile(`\brmdir\s+/s\b`),                       // Windows rmdir /s
+		// Disk wiping
+		regexp.MustCompile(`\b(format|mkfs|diskpart)\b\s`),
 		regexp.MustCompile(`\bdd\s+if=`),
-		regexp.MustCompile(`>\s*/dev/sd[a-z]\b`),            // Block writes to disk devices (but allow /dev/null)
-		regexp.MustCompile(`\b(shutdown|reboot|poweroff)\b`),
+		regexp.MustCompile(`>\s*/dev/sd[a-z]\b`),
+		// System control
+		regexp.MustCompile(`\b(shutdown|reboot|poweroff|halt)\b`),
+		regexp.MustCompile(`\bsystemctl\s+(stop|disable)\s+mypicoclaw`), // Don't let it stop itself
+		// Fork bomb
 		regexp.MustCompile(`:\(\)\s*\{.*\};\s*:`),
+		// System file overwrite
+		regexp.MustCompile(`>\s*/etc/(passwd|shadow|sudoers|fstab)`),
+		// Firewall flush (locked out of VPS)
+		regexp.MustCompile(`\biptables\s+-F`),
+		// Dangerous permission changes on root
+		regexp.MustCompile(`\bchmod\s+(-R\s+)?777\s+/\s*$`),
+		// User deletion
+		regexp.MustCompile(`\buserdel\b`),
+	}
+
+	// 🟡 Warned: logged as warning but still executed
+	warnPatterns := []*regexp.Regexp{
+		regexp.MustCompile(`\brm\b`),                               // Any file deletion
+		regexp.MustCompile(`\b(kill|pkill|killall)\b`),              // Process killing
+		regexp.MustCompile(`\b(apt|yum|dnf|pacman)\s+install\b`),    // Package installation
+		regexp.MustCompile(`\bcurl\b.*\|\s*(ba)?sh`),                // Pipe-to-shell
+		regexp.MustCompile(`\bwget\b.*\|\s*(ba)?sh`),                // Pipe-to-shell
+		regexp.MustCompile(`\bchmod\b`),                             // Permission changes
+		regexp.MustCompile(`\bchown\b`),                             // Ownership changes
+		regexp.MustCompile(`\bsystemctl\s+(restart|start|enable)\b`), // Service management
+		regexp.MustCompile(`\bcrontab\b`),                           // Scheduled tasks
+		regexp.MustCompile(`\bnohup\b.*&`),                          // Background daemons
 	}
 
 	return &ExecTool{
 		workingDir:          workingDir,
 		timeout:             60 * time.Second,
 		denyPatterns:        denyPatterns,
+		warnPatterns:        warnPatterns,
 		allowPatterns:       nil,
 		restrictToWorkspace: false,
 	}
@@ -129,12 +160,23 @@ func (t *ExecTool) guardCommand(command, cwd string) string {
 	cmd := strings.TrimSpace(command)
 	lower := strings.ToLower(cmd)
 
+	// 🔴 Check deny patterns (block immediately)
 	for _, pattern := range t.denyPatterns {
 		if pattern.MatchString(lower) {
-			return "Command blocked by safety guard (dangerous pattern detected)"
+			log.Printf("[SECURITY] ⛔ BLOCKED command: %s (matched: %s)", cmd, pattern.String())
+			return "⛔ Command blocked by safety guard (dangerous pattern detected)"
 		}
 	}
 
+	// 🟡 Check warn patterns (log warning but allow)
+	for _, pattern := range t.warnPatterns {
+		if pattern.MatchString(lower) {
+			log.Printf("[SECURITY] ⚠️ RISKY command allowed: %s (matched: %s)", cmd, pattern.String())
+			break // Only log once even if multiple patterns match
+		}
+	}
+
+	// Check allowlist if configured
 	if len(t.allowPatterns) > 0 {
 		allowed := false
 		for _, pattern := range t.allowPatterns {
