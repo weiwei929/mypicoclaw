@@ -9,22 +9,23 @@ metadata: {"nanobot":{"emoji":"🧠","requires":{"bins":["grep", "find"]}}}
 Search through your personal digital history.
 
 ## Search Paths
-- **Memory**: `~/.mypicoclaw/workspace/memory/`
-- **Sessions**: `~/.mypicoclaw/workspace/sessions/`
-- **Monitor Drops**: `~/.mypicoclaw/workspace/skills/monitor/findings/` (if enabled)
+All paths are relative to your workspace root (shown in your system prompt):
+- **Memory**: `memory/`
+- **Sessions**: `sessions/`
+- **Monitor Drops**: `skills/monitor/findings/` (if enabled)
 
 ## Capabilities
 
 ### 1. Keyword Search
 Use `grep` to find relevant context in past sessions or memory files.
 ```bash
-grep -rnEi "[Keyword]" ~/.mypicoclaw/workspace/
+grep -rnEi "[Keyword]" memory/ sessions/
 ```
 
 ### 2. Chronological Retrieval
 Find information by date.
 ```bash
-find ~/.mypicoclaw/workspace/sessions/ -mtime -7 -name "*.md"
+find sessions/ -mtime -7 -name "*.json"
 ```
 
 ## Workflow
