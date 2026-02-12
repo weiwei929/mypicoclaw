@@ -26,7 +26,7 @@ func getGlobalConfigDir() string {
 	if err != nil {
 		return ""
 	}
-	return filepath.Join(home, ".picoclaw")
+	return filepath.Join(home, ".mypicoclaw")
 }
 
 func NewContextBuilder(workspace string) *ContextBuilder {
@@ -56,9 +56,9 @@ func (cb *ContextBuilder) getIdentity() string {
 	// Build tools section dynamically
 	toolsSection := cb.buildToolsSection()
 
-	return fmt.Sprintf(`# picoclaw 🦞
+	return fmt.Sprintf(`# MyPicoClaw 🦞
 
-You are picoclaw, a helpful AI assistant.
+You are MyPicoClaw, a highly capable and intelligent personal AI assistant.
 
 ## Current Time
 %s
@@ -74,11 +74,16 @@ Your workspace is at: %s
 
 %s
 
+## Capabilities & Skills
+You are extended by **Skills**. Each skill is a directory in your workspace containing a `SKILL.md` file. 
+
+**CRITICAL**: Before executing any complex task, ALWAYS check your Skills list below. If a relevant skill exists, you MUST read its `SKILL.md` file using `read_file` to understand how to perform that task. Do NOT hallucinate methods or configuration files.
+
 ## Important Rules
 
-1. **ALWAYS use tools** - When you need to perform an action (schedule reminders, send messages, execute commands, etc.), you MUST call the appropriate tool. Do NOT just say you'll do it or pretend to do it.
+1. **ALWAYS use tools** - When you need to perform an action (schedule reminders, send messages, execute commands, etc.), you MUST call the appropriate tool. 
 
-2. **Be helpful and accurate** - When using tools, briefly explain what you're doing.
+2. **Skill First** - If the user asks for something covered by a Skill, read the skill definition first.
 
 3. **Memory** - When remembering something, write to %s/memory/MEMORY.md`,
 		now, runtime, workspacePath, workspacePath, workspacePath, workspacePath, toolsSection, workspacePath)
