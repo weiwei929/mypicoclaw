@@ -54,12 +54,15 @@ fi
 # 5. 编译
 echo "--- [5/5] 正在编译二进制文件 ---"
 go build -o mypicoclaw ./cmd/mypicoclaw
+# Storage VPS (set this to your actual VPS IP)
+STORAGE_VPS="${MYPICOCLAW_STORAGE_VPS_HOST:-YOUR_STORAGE_VPS_IP}"
 
+echo ""
 echo "==========================================="
 echo " 🎉 MyPicoClaw 准备就绪！"
 echo "==========================================="
 echo "💡 下一步建议 (可选)："
-echo "   1. 配置大盘鸡免密: ssh-copy-id root@STORAGE_VPS_HOST"
+echo "   1. 配置远程存储免密: ssh-copy-id root@${STORAGE_VPS}"
 echo "   2. 修改配置: nano $CONF_FILE"
 echo "   3. 启动服务: nohup ./mypicoclaw gateway > mypicoclaw.log 2>&1 &"
 echo "==========================================="

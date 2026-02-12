@@ -1,17 +1,17 @@
 ---
 name: media
-description: Download videos or files using yt-dlp and optionally transfer them to the storage VPS (STORAGE_VPS_HOST).
+description: Download videos or files using yt-dlp and optionally transfer them to a configured storage VPS.
 metadata: {"nanobot":{"emoji":"📽️","requires":{"bins":["yt-dlp", "rsync", "ssh"]}}}
 ---
 
 # Media Downloader
 
-Use this skill to download videos from URLs or direct files, with support for remote storage on your "Big Chicken" (大盘鸡) VPS.
+Use this skill to download videos from URLs or direct files, with support for remote storage on your storage VPS.
 
 ## Target Storage
-- **Host**: `STORAGE_VPS_HOST`
-- **Default Remote Path**: `/mnt/storage/pikpak/picoclaw_downloads`
-- **Storage Info**: ~10TB available via PikPak mount.
+- **Host**: Configured via `MYPICOCLAW_STORAGE_VPS_HOST` or `config.json` → `storage_vps.host`
+- **User**: Configured via `MYPICOCLAW_STORAGE_VPS_USER` (default: `root`)
+- **Default Remote Path**: Configured via `MYPICOCLAW_STORAGE_VPS_PATH` (default: `/mnt/storage/pikpak/picoclaw_downloads`)
 
 ## Capabilities
 
@@ -34,15 +34,16 @@ If the user specifies "Save to storage" or "Save to Big Chicken", follow these s
   yt-dlp -o "%(title)s.%(ext)s" [URL]
   ```
 - **Step B: Transfer via Rsync**
+  Use the configured storage VPS host from your config:
   ```bash
-  rsync -avz --remove-source-files [FILENAME] root@STORAGE_VPS_HOST:/mnt/storage/pikpak/picoclaw_downloads/
+  rsync -avz --remove-source-files [FILENAME] $STORAGE_USER@$STORAGE_HOST:$STORAGE_PATH/
   ```
 
 ## Setup Requirements (User Action)
 - Install `yt-dlp` and `rsync` on the gateway VPS.
-- **SSH Key**: Ensure the Gateway VPS can SSH into `root@STORAGE_VPS_HOST` without a password prompt.
+- **SSH Key**: Ensure the Gateway VPS can SSH into the storage VPS without a password prompt.
   - Run `ssh-keygen` (if not exists).
-  - Run `ssh-copy-id root@STORAGE_VPS_HOST`.
+  - Run `ssh-copy-id $STORAGE_USER@$STORAGE_HOST`.
 
 ## Tips
 - For YouTube, use `--proxy` if the VPS is in a restricted region.

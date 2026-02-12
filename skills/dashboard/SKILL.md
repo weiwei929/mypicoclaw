@@ -1,6 +1,6 @@
 ---
 name: dashboard
-description: Show system health and resource usage for the Gateway VPS and the Storage VPS (STORAGE_VPS_HOST).
+description: Show system health and resource usage for the Gateway VPS and a configured Storage VPS.
 metadata: {"nanobot":{"emoji":"📊","requires":{"bins":["ssh", "df", "free", "uptime"]}}}
 ---
 
@@ -10,7 +10,7 @@ Check the pulses of your "Little Chickens" (VPS nodes).
 
 ## Monitored Nodes
 1. **Gateway Node**: Current local host.
-2. **Storage Node (Big Chicken)**: `STORAGE_VPS_HOST`
+2. **Storage Node (Big Chicken)**: Configured via `MYPICOCLAW_STORAGE_VPS_HOST` or `config.json` → `storage_vps.host`
 
 ## Usage
 
@@ -23,15 +23,15 @@ When asked "How are my servers doing?" or "Dashboard", perform the following:
   free -h | grep Mem
   df -h / | tail -1
   ```
-- **Remote (Storage) Check**:
+- **Remote (Storage) Check** (use configured host):
   ```bash
-  ssh root@STORAGE_VPS_HOST "uptime -p; free -h | grep Mem; df -h /mnt/storage/pikpak | tail -1"
+  ssh $STORAGE_USER@$STORAGE_HOST "uptime -p; free -h | grep Mem; df -h /mnt/storage/pikpak | tail -1"
   ```
 
 ### 2. Detailed Storage Check
 When asked about disk space on the Big Chicken:
 ```bash
-ssh root@STORAGE_VPS_HOST "df -h / /mnt/storage/pikpak"
+ssh $STORAGE_USER@$STORAGE_HOST "df -h / /mnt/storage/pikpak"
 ```
 
 ## AI Output Format
@@ -43,4 +43,4 @@ Present the data in a clean Markdown table:
 | Storage | ... | ... | ... |
 
 ## Setup Note
-Requires SSH passwordless login to `root@STORAGE_VPS_HOST`.
+Requires SSH passwordless login to the configured storage VPS. Set the host via `MYPICOCLAW_STORAGE_VPS_HOST` env var.

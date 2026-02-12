@@ -11,12 +11,12 @@
   "channels": {
     "telegram": {
       "enabled": false,
-      "token": "YOUR_TELEGRAM_BOT_TOKEN",
-      "allow_from": ["YOUR_USER_ID"]
+      "token": "",
+      "allow_from": []
     },
     "discord": {
       "enabled": false,
-      "token": "YOUR_DISCORD_BOT_TOKEN",
+      "token": "",
       "allow_from": []
     },
     "maixcam": {
@@ -40,8 +40,8 @@
     },
     "dingtalk": {
       "enabled": false,
-      "client_id": "YOUR_CLIENT_ID",
-      "client_secret": "YOUR_CLIENT_SECRET",
+      "client_id": "",
+      "client_secret": "",
       "allow_from": []
     }
   },
@@ -63,7 +63,7 @@
       "api_base": ""
     },
     "zhipu": {
-      "api_key": "YOUR_ZHIPU_API_KEY",
+      "api_key": "",
       "api_base": ""
     },
     "gemini": {
@@ -82,10 +82,15 @@
   "tools": {
     "web": {
       "search": {
-        "api_key": "YOUR_BRAVE_API_KEY",
+        "api_key": "",
         "max_results": 5
       }
     }
+  },
+  "storage_vps": {
+    "host": "",
+    "user": "root",
+    "path": "/mnt/storage/pikpak/picoclaw_downloads"
   },
   "gateway": {
     "host": "0.0.0.0",

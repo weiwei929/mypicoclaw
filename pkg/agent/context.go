@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/weiwei929/mypicoclaw/pkg/config"
 	"github.com/weiwei929/mypicoclaw/pkg/logger"
 	"github.com/weiwei929/mypicoclaw/pkg/providers"
 	"github.com/weiwei929/mypicoclaw/pkg/skills"
@@ -16,6 +17,7 @@ import (
 
 type ContextBuilder struct {
 	workspace    string
+	config       *config.Config
 	skillsLoader *skills.SkillsLoader
 	memory       *MemoryStore
 	tools        *tools.ToolRegistry // Direct reference to tool registry
@@ -29,7 +31,7 @@ func getGlobalConfigDir() string {
 	return filepath.Join(home, ".mypicoclaw")
 }
 
-func NewContextBuilder(workspace string) *ContextBuilder {
+func NewContextBuilder(workspace string, cfg *config.Config) *ContextBuilder {
 	// builtin skills: skills directory in current project
 	// Use the skills/ directory under the current working directory
 	wd, _ := os.Getwd()
@@ -38,6 +40,7 @@ func NewContextBuilder(workspace string) *ContextBuilder {
 
 	return &ContextBuilder{
 		workspace:    workspace,
+		config:       cfg,
 		skillsLoader: skills.NewSkillsLoader(workspace, globalSkillsDir, builtinSkillsDir),
 		memory:       NewMemoryStore(workspace),
 	}
@@ -55,6 +58,21 @@ func (cb *ContextBuilder) getIdentity() string {
 
 	// Build tools section dynamically
 	toolsSection := cb.buildToolsSection()
+
+	// Build storage VPS section dynamically
+	storageSection := ""
+	if cb.config != nil && cb.config.StorageVPS.Host != "" {
+		storageUser := cb.config.StorageVPS.User
+		if storageUser == "" {
+			storageUser = "root"
+		}
+		storageSection = fmt.Sprintf(`
+- **Server Dashboard**: When asked to check server status, run these commands using the "exec" tool:
+  1. Local check: exec "uptime -p && free -h | grep Mem && df -h / | tail -1"
+  2. Remote storage check: exec "ssh %s@%s 'uptime -p; free -h | grep Mem; df -h / | tail -1'"
+  Then present the results in a Markdown table with columns: Node, Uptime, Memory Usage, Disk Usage.`,
+			storageUser, cb.config.StorageVPS.Host)
+	}
 
 	return fmt.Sprintf(`# MyPicoClaw 🦞
 
@@ -81,11 +99,7 @@ You are extended by **Skills**. Each skill is a directory in your workspace cont
 **CRITICAL**: Before executing any complex task, ALWAYS check your Skills list below. If a relevant skill exists, you MUST read its "SKILL.md" file using "read_file" to understand how to perform that task. Do NOT hallucinate methods or configuration files.
 
 ## Core Skills (Innate)
-You have the following core skills built-in. Use the "exec" tool to run them directly WITHOUT reading any SKILL.md file first:
-- **Server Dashboard**: When asked to check server status, run these commands using the "exec" tool:
-  1. Local check: exec "uptime -p && free -h | grep Mem && df -h / | tail -1"
-  2. Remote storage check: exec "ssh root@STORAGE_VPS_HOST 'uptime -p; free -h | grep Mem; df -h / | tail -1'"
-  Then present the results in a Markdown table with columns: Node, Uptime, Memory Usage, Disk Usage.
+You have the following core skills built-in. Use the "exec" tool to run them directly WITHOUT reading any SKILL.md file first:%s
 
 ## Important Rules
 
@@ -94,7 +108,7 @@ You have the following core skills built-in. Use the "exec" tool to run them dir
 2. **Skill First** - If the user asks for something covered by a Skill, read the skill definition first.
 
 3. **Memory** - When remembering something, write to %s/memory/MEMORY.md`,
-		now, runtime, workspacePath, workspacePath, workspacePath, workspacePath, toolsSection, workspacePath)
+		now, runtime, workspacePath, workspacePath, workspacePath, workspacePath, toolsSection, storageSection, workspacePath)
 }
 
 func (cb *ContextBuilder) buildToolsSection() string {

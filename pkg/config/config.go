@@ -10,12 +10,19 @@ import (
 )
 
 type Config struct {
-	Agents    AgentsConfig    `json:"agents"`
-	Channels  ChannelsConfig  `json:"channels"`
-	Providers ProvidersConfig `json:"providers"`
-	Gateway   GatewayConfig   `json:"gateway"`
-	Tools     ToolsConfig     `json:"tools"`
-	mu        sync.RWMutex
+	Agents     AgentsConfig     `json:"agents"`
+	Channels   ChannelsConfig   `json:"channels"`
+	Providers  ProvidersConfig  `json:"providers"`
+	Gateway    GatewayConfig    `json:"gateway"`
+	Tools      ToolsConfig      `json:"tools"`
+	StorageVPS StorageVPSConfig `json:"storage_vps"`
+	mu         sync.RWMutex
+}
+
+type StorageVPSConfig struct {
+	Host string `json:"host" env:"MYPICOCLAW_STORAGE_VPS_HOST"`
+	User string `json:"user" env:"MYPICOCLAW_STORAGE_VPS_USER"`
+	Path string `json:"path" env:"MYPICOCLAW_STORAGE_VPS_PATH"`
 }
 
 type AgentsConfig struct {
@@ -197,6 +204,11 @@ func DefaultConfig() *Config {
 					MaxResults: 5,
 				},
 			},
+		},
+		StorageVPS: StorageVPSConfig{
+			Host: "",
+			User: "root",
+			Path: "/mnt/storage/pikpak/picoclaw_downloads",
 		},
 	}
 }

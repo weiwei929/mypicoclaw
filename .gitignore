@@ -19,8 +19,20 @@ build/
 coverage.txt
 coverage.html
 
+# Secrets & Credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
 # OS
 .DS_Store
+
+# IDE
+.idea/
+.vscode/
 
 # Ralph workspace
 ralph/
