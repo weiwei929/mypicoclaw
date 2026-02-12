@@ -249,7 +249,7 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 	al.sessions.AddMessage(opts.SessionKey, "user", opts.UserMessage)
 
 	// 4. Run LLM iteration loop
-	finalContent, iteration, err := al.runLLMIteration(ctx, messages, opts)
+	finalContent, iteration, messageSent, err := al.runLLMIteration(ctx, messages, opts)
 	if err != nil {
 		// Graceful fallback: send a user-friendly error message instead of going silent
 		fallbackMsg := al.buildErrorFallback(err)
@@ -259,6 +259,7 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 				"fallback": fallbackMsg,
 			})
 		finalContent = fallbackMsg
+		messageSent = false // Ensure fallback is always sent
 		// Continue to save and send the fallback message (don't return error)
 		_ = iteration
 	}
@@ -277,8 +278,8 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 		al.maybeSummarize(opts.SessionKey)
 	}
 
-	// 8. Optional: send response via bus
-	if opts.SendResponse {
+	// 8. Optional: send response via bus (skip if message tool already sent)
+	if opts.SendResponse && !messageSent {
 		al.bus.PublishOutbound(bus.OutboundMessage{
 			Channel: opts.Channel,
 			ChatID:  opts.ChatID,
@@ -290,19 +291,25 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 	responsePreview := utils.Truncate(finalContent, 120)
 	logger.InfoCF("agent", fmt.Sprintf("Response: %s", responsePreview),
 		map[string]interface{}{
-			"session_key":  opts.SessionKey,
-			"iterations":   iteration,
-			"final_length": len(finalContent),
+			"session_key":    opts.SessionKey,
+			"iterations":     iteration,
+			"final_length":   len(finalContent),
+			"message_sent":   messageSent,
 		})
 
+	// If message tool already sent, return empty to prevent outer duplicate
+	if messageSent {
+		return "", nil
+	}
 	return finalContent, nil
 }
 
 // runLLMIteration executes the LLM call loop with tool handling.
-// Returns the final content, iteration count, and any error.
-func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.Message, opts processOptions) (string, int, error) {
+// Returns the final content, iteration count, whether message tool was used, and any error.
+func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.Message, opts processOptions) (string, int, bool, error) {
 	iteration := 0
 	var finalContent string
+	messageSent := false
 
 	for iteration < al.maxIterations {
 		iteration++
@@ -364,7 +371,7 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 					"iteration": iteration,
 					"error":     err.Error(),
 				})
-			return "", iteration, fmt.Errorf("LLM call failed: %w", err)
+			return "", iteration, false, fmt.Errorf("LLM call failed: %w", err)
 		}
 
 		// Check if no tool calls - we're done
@@ -430,6 +437,11 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 				result = fmt.Sprintf("Error: %v", err)
 			}
 
+			// Track if message tool was called to current channel
+			if tc.Name == "message" {
+				messageSent = true
+			}
+
 			toolResultMsg := providers.Message{
 				Role:       "tool",
 				Content:    &result,
@@ -442,7 +454,7 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 		}
 	}
 
-	return finalContent, iteration, nil
+	return finalContent, iteration, messageSent, nil
 }
 
 // buildErrorFallback returns a user-friendly error message based on the error type.
