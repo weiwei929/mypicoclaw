@@ -126,8 +126,8 @@ func DefaultConfig() *Config {
 	return &Config{
 		Agents: AgentsConfig{
 			Defaults: AgentDefaults{
-				Workspace:         "~/.MYPICOCLAW/workspace",
-				Model:             "glm-4.7",
+				Workspace:         "~/.mypicoclaw/workspace",
+				Model:             "moonshot-v1-8k",
 				MaxTokens:         8192,
 				Temperature:       0.7,
 				MaxToolIterations: 20,

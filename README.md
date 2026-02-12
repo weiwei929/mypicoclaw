@@ -90,13 +90,13 @@ MyPicoClaw 几乎可以部署在任何 Linux 设备上！
 
 ### 使用预编译二进制文件安装
 
-从 [Release](https://github.com/sipeed/MyPicoClaw/releases) 页面下载适合你平台的固件。
+从 [Release](https://github.com/weiwei929/mypicoclaw/releases) 页面下载适合你平台的固件。
 
 ### 从源码安装（推荐用于开发，获取最新功能）
 
 ```bash
-git clone https://github.com/your-username/myMyPicoClaw.git
-cd myMyPicoClaw
+git clone https://github.com/weiwei929/mypicoclaw.git
+cd mypicoclaw
 make deps
 
 # 编译，无需安装
@@ -109,10 +109,29 @@ make build-all
 make install
 ```
 
+## 🚀 部署预备清单 (Pre-Deployment Checklist)
+
+为了实现“一气呵成”的部署体验，请在开始前确认以下事项：
+
+1. **域名准备**：如果你打算使用 Caddy 访问，请确保域名已指向主 VPS。
+2. **API Key**：
+   - **Moonshot Global**: [获取地址](https://platform.moonshot.ai) (目前默认模型)
+   - **Brave Search**: [获取地址](https://brave.com/search/api)
+3. **大盘鸡 (STORAGE_VPS_HOST) 配对**：
+   - 在主 VPS 上运行 `ssh-keygen`。
+   - 运行 `ssh-copy-id root@STORAGE_VPS_HOST` 实现免密。
+   - 确保大盘鸡已安装 `rsync`。
+
+### 🚀 一键安装命令
+
+```bash
+curl -sSL https://raw.githubusercontent.com/weiwei929/mypicoclaw/main/deploy.sh | bash
+```
+
 ### 🚀 快速开始
 
 > [!TIP]
-> 在 `~/.MyPicoClaw/config.json` 中设置你的 API Key。
+> 在 `~/.mypicoclaw/config.json` 中设置你的 API Key。
 > 获取 Key：[Moonshot Global](https://platform.moonshot.ai) (Kimi) · [OpenRouter](https://openrouter.ai/keys) (LLM) · [智谱](https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys) (LLM)
 > 联网搜索是 **可选** 的 - 获取免费的 [Brave Search API](https://brave.com/search/api) (每月 2000 次免费查询)
 
@@ -122,7 +141,7 @@ make install
 MyPicoClaw onboard
 ```
 
-**2. 配置** (`~/.MyPicoClaw/config.json`)
+**2. 配置** (`~/.mypicoclaw/config.json`)
 
 ```json
 {
@@ -245,13 +264,13 @@ MyPicoClaw 在你配置的工作空间（默认 `~/.MyPicoClaw/workspace`）中�
 
 | 命令 | 描述 |
 |---------|-------------|
-| `MyPicoClaw onboard` | 初始化配置与工作空间 |
-| `MyPicoClaw agent -m "..."` | 与 Agent 进行单次对话 |
-| `MyPicoClaw agent` | 进入交互式对话模式 |
-| `MyPicoClaw gateway` | 启动网关（用于各聊天渠道） |
-| `MyPicoClaw status` | 查看状态 |
-| `MyPicoClaw cron list` | 列出所有定时任务 |
-| `MyPicoClaw cron add ...` | 添加定时任务 |
+| `./mypicoclaw onboard` | 初始化配置与工作空间 |
+| `./mypicoclaw agent -m "..."` | 与 Agent 进行单次对话 |
+| `./mypicoclaw agent` | 进入交互式对话模式 |
+| `./mypicoclaw gateway` | 启动网关（用于各聊天渠道） |
+| `./mypicoclaw status` | 查看状态 |
+| `./mypicoclaw cron list` | 列出所有定时任务 |
+| `./mypicoclaw cron add ...` | 添加定时任务 |
 
 ---
 
