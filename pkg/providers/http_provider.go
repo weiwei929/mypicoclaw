@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/weiwei929/mypicoclaw/pkg/config"
+	"github.com/weiwei929/mypicoclaw/pkg/logger"
 )
 
 type HTTPProvider struct {
@@ -155,16 +156,19 @@ func (p *HTTPProvider) parseResponse(body []byte) (*LLMResponse, error) {
 			}
 		}
 
-		toolCalls = append(toolCalls, ToolCall{
-			ID:   tc.ID,
-			Type: tc.Type,
-			Function: &FunctionCall{
-				Name:      tc.Function.Name,
-				Arguments: tc.Function.Arguments,
-			},
+		newTC := ToolCall{
+			ID:        tc.ID,
+			Type:      tc.Type,
 			Name:      name,
 			Arguments: arguments,
-		})
+		}
+		if tc.Function != nil {
+			newTC.Function = &FunctionCall{
+				Name:      tc.Function.Name,
+				Arguments: tc.Function.Arguments,
+			}
+		}
+		toolCalls = append(toolCalls, newTC)
 	}
 
 	return &LLMResponse{
