@@ -47,3 +47,34 @@ If the user specifies "Save to storage" or "Save to Big Chicken", follow these s
 ## Tips
 - For YouTube, use `--proxy` if the VPS is in a restricted region.
 - Use `--extract-audio --audio-format mp3` if the user only wants the sound.
+
+## 🛡️ Advanced: Bypassing Anti-Leech (防盗链/地区限制)
+
+If a download fails due to "Forbidden" or "Sign in to confirm your age", use these strategies:
+
+### 1. Cookies (The most powerful way)
+- **Problem**: Captcha or Login required.
+- **Solution**: Export cookies from your browser (using extensions like "Get cookies.txt LOCALLY") and upload to `~/.mypicoclaw/cookies.txt`.
+- **Command**:
+  ```bash
+  yt-dlp --cookies ~/.mypicoclaw/cookies.txt [URL]
+  ```
+
+### 2. User-Agent & Referer
+- **Problem**: Basic anti-bot checks.
+- **Example (Bilibili)**:
+  ```bash
+  yt-dlp --user-agent "Mozilla/5.0 ..." --referer "https://www.bilibili.com" [URL]
+  ```
+
+### 3. Region Bypassing
+- Use a proxy if the video is restricted to a certain country:
+  ```bash
+  yt-dlp --proxy "http://user:pass@host:port" [URL]
+  ```
+
+### 4. Direct File Leech (Aria2)
+For direct file links that check referers, use `aria2c`:
+```bash
+aria2c --referer="[URL]" "[FILE_LINK]"
+```
