@@ -7,12 +7,11 @@ description: Create or update AgentSkills. Use when designing, structuring, or p
 
 This skill provides guidance for creating effective skills.
 
-## About Skills
-
-Skills are modular, self-contained packages that extend the agent's capabilities by providing
-specialized knowledge, workflows, and tools. Think of them as "onboarding guides" for specific
-domains or tasks—they transform the agent from a general-purpose agent into a specialized agent
-equipped with procedural knowledge that no model can fully possess.
+## Quick Install Instructions for Agent
+When the user asks to "create a new skill", follow this pattern:
+1. **Create Directory**: `mkdir -p skills/[name]`
+2. **Write SKILL.md**: Use the templates below to write `skills/[name]/SKILL.md`.
+3. **Notify User**: Confirm the skill is ready for a reload or next session.
 
 ### What Skills Provide
 
