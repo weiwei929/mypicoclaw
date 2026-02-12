@@ -47,8 +47,14 @@ func (c *BaseChannel) IsAllowed(senderID string) bool {
 		return true
 	}
 
+	// Telegram format is "ID|Username", but others might just be "ID"
+	idOnly := senderID
+	if idx := strings.Index(senderID, "|"); idx > 0 {
+		idOnly = senderID[:idx]
+	}
+
 	for _, allowed := range c.allowList {
-		if senderID == allowed {
+		if senderID == allowed || idOnly == allowed {
 			return true
 		}
 	}

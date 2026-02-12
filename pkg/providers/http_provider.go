@@ -29,7 +29,7 @@ func NewHTTPProvider(apiKey, apiBase string) *HTTPProvider {
 		apiKey:  apiKey,
 		apiBase: apiBase,
 		httpClient: &http.Client{
-			Timeout: 0,
+			Timeout: 60 * time.Second,
 		},
 	}
 }
