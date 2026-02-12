@@ -15,7 +15,7 @@
 
 ---
 
-🦐 **MyPicoClaw** 是一款受 [nanobot](https://github.com/HKUDS/nanobot) 启发、完全由 Go 语言重写的超轻量级个人 AI 助手。它通过“自我进化”过程构建——由 AI 代理驱动了整个架构迁移和代码优化。
+🦐 **MyPicoClaw** 是一款受 [nanobot](https://github.com/HKUDS/nanobot) 启发、完全由 Go 语言重写的超轻量级个人 AI 助手。它通过"自我进化"过程构建——由 AI 代理驱动了整个架构迁移和代码优化。
 
 ⚡️ **在 $10 的硬件上以 <10MB 内存运行**：比 OpenClaw 节省 99% 的内存，比 Mac mini 便宜 98%！
 
@@ -35,6 +35,8 @@
 </table>
 
 ## 📢 新闻
+2026-02-12 🛡️ v1.1 稳定版：新增 API 重试机制、优雅错误降级、systemd 生产部署支持。
+
 2026-02-09 🎉 MyPicoClaw 正式发布！仅用 1 天时间开发，为 $10 级硬件带来不到 10MB 内存占用的 AI 代理。🦐 皮皮虾，我们走！
 
 ## ✨ 特性
@@ -48,6 +50,8 @@
 🌍 **真正的便携性**：支持 RISC-V、ARM 和 x86 的单一自包含二进制文件，一键运行！
 
 🤖 **AI 自驱开发**：自主 Go 原生实现 —— 95% 的核心代码由 Agent 生成。
+
+🛡️ **生产级容错**：API 过载自动重试（指数退避），异常优雅降级，永不沉默。
 
 |  | OpenClaw  | NanoBot | **MyPicoClaw** |
 | --- | --- | --- |--- |
@@ -97,35 +101,39 @@ MyPicoClaw 几乎可以部署在任何 Linux 设备上！
 ```bash
 git clone https://github.com/weiwei929/mypicoclaw.git
 cd mypicoclaw
-make deps
-
-# 编译，无需安装
-make build
-
-# 为所有平台编译
-make build-all
-
-# 编译并安装
-make install
+go build -o mypicoclaw ./cmd/mypicoclaw
 ```
 
-## 🚀 部署预备清单 (Pre-Deployment Checklist)
+## 🚀 VPS 生产部署
 
-为了实现“一气呵成”的部署体验，请在开始前确认以下事项：
+> [!NOTE]
+> MyPicoClaw 使用 Telegram Polling 模式，**不需要域名、Caddy 或开放任何端口**。
 
-1. **域名准备**：如果你打算使用 Caddy 访问，请确保域名已指向主 VPS。
-2. **API Key**：
-   - **Moonshot Global**: [获取地址](https://platform.moonshot.ai) (目前默认模型)
-   - **Brave Search**: [获取地址](https://brave.com/search/api)
-3. **大盘鸡 (STORAGE_VPS_HOST) 配对**：
-   - 在主 VPS 上运行 `ssh-keygen`。
-   - 运行 `ssh-copy-id root@STORAGE_VPS_HOST` 实现免密。
-   - 确保大盘鸡已安装 `rsync`。
+### 部署前准备
 
-### 🚀 一键安装命令
+1. **API Key**：
+   - **Moonshot Global**: [获取地址](https://platform.moonshot.ai) (默认模型)
+   - **Brave Search** (可选): [获取地址](https://brave.com/search/api)
+2. **远程节点配对** (如有多台 VPS)：
+   ```bash
+   ssh-keygen -t ed25519 -N ""
+   ssh-copy-id root@<远程IP>
+   ```
+
+### 一键部署
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/weiwei929/mypicoclaw/main/deploy.sh | bash
+git clone https://github.com/weiwei929/mypicoclaw.git
+cd mypicoclaw
+bash deploy/production.sh
+```
+
+部署脚本会自动完成：`git pull` → 编译 → 安装 systemd 服务 → 启动 → 验证状态。
+
+### 后续更新
+
+```bash
+bash deploy/production.sh   # 自动 pull → 编译 → 重启
 ```
 
 ### 🚀 快速开始
@@ -138,7 +146,7 @@ curl -sSL https://raw.githubusercontent.com/weiwei929/mypicoclaw/main/deploy.sh 
 **1. 初始化**
 
 ```bash
-MyPicoClaw onboard
+./mypicoclaw onboard
 ```
 
 **2. 配置** (`~/.mypicoclaw/config.json`)
@@ -147,7 +155,7 @@ MyPicoClaw onboard
 {
   "agents": {
     "defaults": {
-      "workspace": "~/.MyPicoClaw/workspace",
+      "workspace": "~/.mypicoclaw/workspace",
       "model": "moonshot-v1-8k",
       "max_tokens": 8192,
       "temperature": 0.3,
@@ -171,15 +179,10 @@ MyPicoClaw onboard
 }
 ```
 
-**3. 获取 API Key**
-
-- **LLM 供应商**: [Moonshot AI](https://platform.moonshot.ai) · [OpenRouter](https://openrouter.ai/keys) · [智谱](https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys) · [Anthropic](https://console.anthropic.com) · [OpenAI](https://platform.openai.com) · [Gemini](https://aistudio.google.com/api-keys)
-- **联网搜索** (可选): [Brave Search](https://brave.com/search/api) - 提供免费档位 (2000 requests/month)
-
-**4. 开始聊天**
+**3. 开始聊天**
 
 ```bash
-MyPicoClaw agent -m "2+2 等于几？"
+./mypicoclaw agent -m "2+2 等于几？"
 ```
 
 就是这样！你只需 2 分钟就能拥有一个可以工作的 AI 助手。
@@ -222,20 +225,20 @@ MyPicoClaw agent -m "2+2 等于几？"
 
 **3. 运行**
 ```bash
-MyPicoClaw gateway
+./mypicoclaw gateway
 ```
 </details>
 
 ## ⚙️ 详细配置
 
-配置文件路径：`~/.MyPicoClaw/config.json`
+配置文件路径：`~/.mypicoclaw/config.json`
 
 ### 工作空间结构
 
-MyPicoClaw 在你配置的工作空间（默认 `~/.MyPicoClaw/workspace`）中存储数据：
+MyPicoClaw 在你配置的工作空间（默认 `~/.mypicoclaw/workspace`）中存储数据：
 
 ```
-~/.MyPicoClaw/workspace/
+~/.mypicoclaw/workspace/
 ├── sessions/          # 对话会话与历史记录
 ├── memory/           # 长期记忆 (MEMORY.md)
 ├── cron/             # 定时任务数据库
@@ -262,6 +265,8 @@ MyPicoClaw 在你配置的工作空间（默认 `~/.MyPicoClaw/workspace`）中�
 
 ## 📚 常用命令参考
 
+### 应用命令
+
 | 命令 | 描述 |
 |---------|-------------|
 | `./mypicoclaw onboard` | 初始化配置与工作空间 |
@@ -271,6 +276,16 @@ MyPicoClaw 在你配置的工作空间（默认 `~/.MyPicoClaw/workspace`）中�
 | `./mypicoclaw status` | 查看状态 |
 | `./mypicoclaw cron list` | 列出所有定时任务 |
 | `./mypicoclaw cron add ...` | 添加定时任务 |
+
+### 运维命令 (systemd 部署后)
+
+| 命令 | 描述 |
+|---------|-------------|
+| `bash deploy/production.sh` | 一键更新部署（pull + build + restart） |
+| `systemctl status mypicoclaw` | 查看服务状态 |
+| `journalctl -u mypicoclaw -f` | 实时查看日志 |
+| `systemctl restart mypicoclaw` | 重启服务 |
+| `systemctl stop mypicoclaw` | 停止服务 |
 
 ---
 
@@ -288,12 +303,22 @@ MyPicoClaw 在你配置的工作空间（默认 `~/.MyPicoClaw/workspace`）中�
 1. 在 [Brave Search API](https://brave.com/search/api) 获取免费 Key。
 2. 填入 `config.json` 的 `tools.web.search.api_key` 中。
 
+### API 报 "engine_overloaded" 错误
+MyPicoClaw 内置了自动重试机制（指数退避 2s→4s→8s），大部分临时过载会自动恢复。如果持续失败，会返回友好的中文提示而不是沉默。
+
+### 清除会话数据
+如果遇到奇怪的 `tool_call_id not found` 错误，清除历史会话即可：
+```bash
+rm -rf ~/.mypicoclaw/sessions/*
+systemctl restart mypicoclaw
+```
+
 ---
 
 ## 📝 API 供应商对比
 
 | 服务 | 免费档位 | 适用场景 |
-|---------|-----------|-----------|
+|---------|-----------|-----------| 
 | **Moonshot** | 适配国际版 | 强力中文/英文支持 |
 | **OpenRouter** | 200K tokens/月 | 尝试各种模型 (Claude, GPT-4 等) |
 | **智谱 (Zhipu)** | 200K tokens/月 | 中国区访问流畅 |
