@@ -11,9 +11,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/sipeed/picoclaw/pkg/bus"
-	"github.com/sipeed/picoclaw/pkg/config"
-	"github.com/sipeed/picoclaw/pkg/logger"
+	"github.com/weiwei929/mypicoclaw/pkg/bus"
+	"github.com/weiwei929/mypicoclaw/pkg/config"
+	"github.com/weiwei929/mypicoclaw/pkg/logger"
 )
 
 type Manager struct {

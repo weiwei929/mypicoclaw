@@ -1,4 +1,4 @@
-module github.com/sipeed/picoclaw
+module github.com/weiwei929/mypicoclaw
 
 go 1.24.0
 

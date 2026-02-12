@@ -1,7 +1,7 @@
 <div align="center">
-<img src="assets/logo.jpg" alt="PicoClaw" width="512">
+<img src="assets/logo.jpg" alt="MyPicoClaw" width="512">
 
-<h1>PicoClaw: Go 语言编写的超高效 AI 助手</h1>
+<h1>MyPicoClaw: Go 语言编写的超高效 AI 助手</h1>
 
 <h3>$10 硬件 · 10MB 内存 · 1秒启动 · 皮皮虾，我们走！</h3>
 
@@ -15,7 +15,7 @@
 
 ---
 
-🦐 **PicoClaw** 是一款受 [nanobot](https://github.com/HKUDS/nanobot) 启发、完全由 Go 语言重写的超轻量级个人 AI 助手。它通过“自我进化”过程构建——由 AI 代理驱动了整个架构迁移和代码优化。
+🦐 **MyPicoClaw** 是一款受 [nanobot](https://github.com/HKUDS/nanobot) 启发、完全由 Go 语言重写的超轻量级个人 AI 助手。它通过“自我进化”过程构建——由 AI 代理驱动了整个架构迁移和代码优化。
 
 ⚡️ **在 $10 的硬件上以 <10MB 内存运行**：比 OpenClaw 节省 99% 的内存，比 Mac mini 便宜 98%！
 
@@ -23,7 +23,7 @@
   <tr align="center">
     <td align="center" valign="top">
       <p align="center">
-        <img src="assets/picoclaw_mem.gif" width="360" height="240">
+        <img src="assets/MyPicoClaw_mem.gif" width="360" height="240">
       </p>
     </td>
     <td align="center" valign="top">
@@ -35,7 +35,7 @@
 </table>
 
 ## 📢 新闻
-2026-02-09 🎉 PicoClaw 正式发布！仅用 1 天时间开发，为 $10 级硬件带来不到 10MB 内存占用的 AI 代理。🦐 皮皮虾，我们走！
+2026-02-09 🎉 MyPicoClaw 正式发布！仅用 1 天时间开发，为 $10 级硬件带来不到 10MB 内存占用的 AI 代理。🦐 皮皮虾，我们走！
 
 ## ✨ 特性
 
@@ -49,13 +49,13 @@
 
 🤖 **AI 自驱开发**：自主 Go 原生实现 —— 95% 的核心代码由 Agent 生成。
 
-|  | OpenClaw  | NanoBot | **PicoClaw** |
+|  | OpenClaw  | NanoBot | **MyPicoClaw** |
 | --- | --- | --- |--- |
 | **语言** | TypeScript | Python | **Go** |
 | **内存占用** | >1GB |>100MB| **< 10MB** |
 | **启动时间**</br>(0.8GHz 核心) | >500s | >30s |  **<1s** |
 | **成本** | Mac Mini 599$ | 大多数 Linux SBC </br>~50$ |**任何 Linux 开发板**</br>**低至 10$** |
-<img src="assets/compare.jpg" alt="PicoClaw" width="512">
+<img src="assets/compare.jpg" alt="MyPicoClaw" width="512">
 
 ## 🦾 演示
 ### 🛠️ 标准助手工作流
@@ -66,9 +66,9 @@
     <th><p align="center">🔎 联网搜索与学习</p></th>
   </tr>
   <tr>
-    <td align="center"><p align="center"><img src="assets/picoclaw_code.gif" width="240" height="180"></p></td>
-    <td align="center"><p align="center"><img src="assets/picoclaw_memory.gif" width="240" height="180"></p></td>
-    <td align="center"><p align="center"><img src="assets/picoclaw_search.gif" width="240" height="180"></p></td>
+    <td align="center"><p align="center"><img src="assets/MyPicoClaw_code.gif" width="240" height="180"></p></td>
+    <td align="center"><p align="center"><img src="assets/MyPicoClaw_memory.gif" width="240" height="180"></p></td>
+    <td align="center"><p align="center"><img src="assets/MyPicoClaw_search.gif" width="240" height="180"></p></td>
   </tr>
   <tr>
     <td align="center">开发 • 部署 • 扩展</td>
@@ -78,7 +78,7 @@
 </table>
 
 ### 🐜 创新的低功耗部署
-PicoClaw 几乎可以部署在任何 Linux 设备上！
+MyPicoClaw 几乎可以部署在任何 Linux 设备上！
 
 - $9.9 [LicheeRV-Nano](https://www.aliexpress.com/item/1005006519668532.html) E 或 W 版，极致迷你的家庭助手。
 - $30~50 [NanoKVM](https://www.aliexpress.com/item/1005007369816019.html)，或 $100 [NanoKVM-Pro](https://www.aliexpress.com/item/1005010048471263.html)，用于自动化服务器维护。
@@ -90,13 +90,13 @@ PicoClaw 几乎可以部署在任何 Linux 设备上！
 
 ### 使用预编译二进制文件安装
 
-从 [Release](https://github.com/sipeed/picoclaw/releases) 页面下载适合你平台的固件。
+从 [Release](https://github.com/sipeed/MyPicoClaw/releases) 页面下载适合你平台的固件。
 
 ### 从源码安装（推荐用于开发，获取最新功能）
 
 ```bash
-git clone https://github.com/your-username/mypicoclaw.git
-cd mypicoclaw
+git clone https://github.com/your-username/myMyPicoClaw.git
+cd myMyPicoClaw
 make deps
 
 # 编译，无需安装
@@ -112,23 +112,23 @@ make install
 ### 🚀 快速开始
 
 > [!TIP]
-> 在 `~/.picoclaw/config.json` 中设置你的 API Key。
+> 在 `~/.MyPicoClaw/config.json` 中设置你的 API Key。
 > 获取 Key：[Moonshot Global](https://platform.moonshot.ai) (Kimi) · [OpenRouter](https://openrouter.ai/keys) (LLM) · [智谱](https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys) (LLM)
 > 联网搜索是 **可选** 的 - 获取免费的 [Brave Search API](https://brave.com/search/api) (每月 2000 次免费查询)
 
 **1. 初始化**
 
 ```bash
-picoclaw onboard
+MyPicoClaw onboard
 ```
 
-**2. 配置** (`~/.picoclaw/config.json`)
+**2. 配置** (`~/.MyPicoClaw/config.json`)
 
 ```json
 {
   "agents": {
     "defaults": {
-      "workspace": "~/.picoclaw/workspace",
+      "workspace": "~/.MyPicoClaw/workspace",
       "model": "moonshot-v1-8k",
       "max_tokens": 8192,
       "temperature": 0.3,
@@ -160,7 +160,7 @@ picoclaw onboard
 **4. 开始聊天**
 
 ```bash
-picoclaw agent -m "2+2 等于几？"
+MyPicoClaw agent -m "2+2 等于几？"
 ```
 
 就是这样！你只需 2 分钟就能拥有一个可以工作的 AI 助手。
@@ -169,7 +169,7 @@ picoclaw agent -m "2+2 等于几？"
 
 ## 💬 聊天应用支持
 
-通过 Telegram、Discord 或飞书与你的 PicoClaw 对话。
+通过 Telegram、Discord 或飞书与你的 MyPicoClaw 对话。
 
 | 渠道 | 设置难度 |
 |---------|-------|
@@ -203,20 +203,20 @@ picoclaw agent -m "2+2 等于几？"
 
 **3. 运行**
 ```bash
-picoclaw gateway
+MyPicoClaw gateway
 ```
 </details>
 
 ## ⚙️ 详细配置
 
-配置文件路径：`~/.picoclaw/config.json`
+配置文件路径：`~/.MyPicoClaw/config.json`
 
 ### 工作空间结构
 
-PicoClaw 在你配置的工作空间（默认 `~/.picoclaw/workspace`）中存储数据：
+MyPicoClaw 在你配置的工作空间（默认 `~/.MyPicoClaw/workspace`）中存储数据：
 
 ```
-~/.picoclaw/workspace/
+~/.MyPicoClaw/workspace/
 ├── sessions/          # 对话会话与历史记录
 ├── memory/           # 长期记忆 (MEMORY.md)
 ├── cron/             # 定时任务数据库
@@ -245,13 +245,13 @@ PicoClaw 在你配置的工作空间（默认 `~/.picoclaw/workspace`）中存�
 
 | 命令 | 描述 |
 |---------|-------------|
-| `picoclaw onboard` | 初始化配置与工作空间 |
-| `picoclaw agent -m "..."` | 与 Agent 进行单次对话 |
-| `picoclaw agent` | 进入交互式对话模式 |
-| `picoclaw gateway` | 启动网关（用于各聊天渠道） |
-| `picoclaw status` | 查看状态 |
-| `picoclaw cron list` | 列出所有定时任务 |
-| `picoclaw cron add ...` | 添加定时任务 |
+| `MyPicoClaw onboard` | 初始化配置与工作空间 |
+| `MyPicoClaw agent -m "..."` | 与 Agent 进行单次对话 |
+| `MyPicoClaw agent` | 进入交互式对话模式 |
+| `MyPicoClaw gateway` | 启动网关（用于各聊天渠道） |
+| `MyPicoClaw status` | 查看状态 |
+| `MyPicoClaw cron list` | 列出所有定时任务 |
+| `MyPicoClaw cron add ...` | 添加定时任务 |
 
 ---
 
@@ -259,12 +259,12 @@ PicoClaw 在你配置的工作空间（默认 `~/.picoclaw/workspace`）中存�
 
 欢迎 PR！代码库保持简洁易读。🤗
 
-<img src="assets/wechat.png" alt="PicoClaw" width="512">
+<img src="assets/wechat.png" alt="MyPicoClaw" width="512">
 
 ## 🐛 常见问题
 
 ### 联网搜索提示 "API 配置问题"
-如果你还没有配置搜索 API Key，这是正常现象。PicoClaw 会提供参考链接供你手动搜索。
+如果你还没有配置搜索 API Key，这是正常现象。MyPicoClaw 会提供参考链接供你手动搜索。
 配置方法：
 1. 在 [Brave Search API](https://brave.com/search/api) 获取免费 Key。
 2. 填入 `config.json` 的 `tools.web.search.api_key` 中。

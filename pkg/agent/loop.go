@@ -16,13 +16,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sipeed/picoclaw/pkg/bus"
-	"github.com/sipeed/picoclaw/pkg/config"
-	"github.com/sipeed/picoclaw/pkg/logger"
-	"github.com/sipeed/picoclaw/pkg/providers"
-	"github.com/sipeed/picoclaw/pkg/session"
-	"github.com/sipeed/picoclaw/pkg/tools"
-	"github.com/sipeed/picoclaw/pkg/utils"
+	"github.com/weiwei929/mypicoclaw/pkg/bus"
+	"github.com/weiwei929/mypicoclaw/pkg/config"
+	"github.com/weiwei929/mypicoclaw/pkg/logger"
+	"github.com/weiwei929/mypicoclaw/pkg/providers"
+	"github.com/weiwei929/mypicoclaw/pkg/session"
+	"github.com/weiwei929/mypicoclaw/pkg/tools"
+	"github.com/weiwei929/mypicoclaw/pkg/utils"
 )
 
 type AgentLoop struct {
