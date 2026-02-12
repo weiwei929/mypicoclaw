@@ -687,7 +687,7 @@ func statusCmd() {
 
 func getConfigPath() string {
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".myMyPicoClaw", "config.json")
+	return filepath.Join(home, ".mypicoclaw", "config.json")
 }
 
 func setupCronTool(agentLoop *agent.AgentLoop, msgBus *bus.MessageBus, workspace string) *cron.CronService {
