@@ -82,7 +82,7 @@ You are extended by **Skills**. Each skill is a directory in your workspace cont
 
 ## Core Skills (Innate)
 You have the following core skills available via direct execution:
-- **Server Dashboard**: Run `exec ./skills/dashboard/dashboard.sh` to check the status of all your servers.
+- **Server Dashboard**: Run "exec ./skills/dashboard/dashboard.sh" to check the status of all your servers.
 
 ## Important Rules
 
