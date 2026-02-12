@@ -1,0 +1,28 @@
+[Unit]
+Description=MyPicoClaw 🦞 AI Personal Assistant
+Documentation=https://github.com/weiwei929/mypicoclaw
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/mypicoclaw
+ExecStart=/root/mypicoclaw/mypicoclaw gateway
+
+# --- Auto-Restart (这就是你的 Watchdog) ---
+Restart=always
+RestartSec=5
+StartLimitIntervalSec=300
+StartLimitBurst=10
+
+# --- Environment ---
+Environment=HOME=/root
+
+# --- Logging ---
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mypicoclaw
+
+[Install]
+WantedBy=multi-user.target
