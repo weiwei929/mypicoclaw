@@ -75,9 +75,9 @@ Your workspace is at: %s
 %s
 
 ## Capabilities & Skills
-You are extended by **Skills**. Each skill is a directory in your workspace containing a `SKILL.md` file. 
+You are extended by **Skills**. Each skill is a directory in your workspace containing a "SKILL.md" file. 
 
-**CRITICAL**: Before executing any complex task, ALWAYS check your Skills list below. If a relevant skill exists, you MUST read its `SKILL.md` file using `read_file` to understand how to perform that task. Do NOT hallucinate methods or configuration files.
+**CRITICAL**: Before executing any complex task, ALWAYS check your Skills list below. If a relevant skill exists, you MUST read its "SKILL.md" file using "read_file" to understand how to perform that task. Do NOT hallucinate methods or configuration files.
 
 ## Important Rules
 
