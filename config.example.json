@@ -73,6 +73,10 @@
     "vllm": {
       "api_key": "",
       "api_base": ""
+    },
+    "moonshot": {
+      "api_key": "",
+      "api_base": "https://api.moonshot.ai/v1"
     }
   },
   "tools": {

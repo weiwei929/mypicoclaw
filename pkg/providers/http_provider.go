@@ -221,6 +221,13 @@ func CreateProvider(cfg *config.Config) (LLMProvider, error) {
 			apiBase = "https://api.groq.com/openai/v1"
 		}
 
+	case (strings.Contains(lowerModel, "moonshot") || strings.HasPrefix(model, "moonshot/")) && cfg.Providers.Moonshot.APIKey != "":
+		apiKey = cfg.Providers.Moonshot.APIKey
+		apiBase = cfg.Providers.Moonshot.APIBase
+		if apiBase == "" {
+			apiBase = "https://api.moonshot.ai/v1"
+		}
+
 	case cfg.Providers.VLLM.APIBase != "":
 		apiKey = cfg.Providers.VLLM.APIKey
 		apiBase = cfg.Providers.VLLM.APIBase

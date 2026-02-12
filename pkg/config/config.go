@@ -96,6 +96,7 @@ type ProvidersConfig struct {
 	Zhipu      ProviderConfig `json:"zhipu"`
 	VLLM       ProviderConfig `json:"vllm"`
 	Gemini     ProviderConfig `json:"gemini"`
+	Moonshot   ProviderConfig `json:"moonshot"`
 }
 
 type ProviderConfig struct {
@@ -183,6 +184,7 @@ func DefaultConfig() *Config {
 			Zhipu:      ProviderConfig{},
 			VLLM:       ProviderConfig{},
 			Gemini:     ProviderConfig{},
+			Moonshot:   ProviderConfig{},
 		},
 		Gateway: GatewayConfig{
 			Host: "0.0.0.0",
@@ -268,6 +270,9 @@ func (c *Config) GetAPIKey() string {
 	if c.Providers.VLLM.APIKey != "" {
 		return c.Providers.VLLM.APIKey
 	}
+	if c.Providers.Moonshot.APIKey != "" {
+		return c.Providers.Moonshot.APIKey
+	}
 	return ""
 }
 
@@ -285,6 +290,12 @@ func (c *Config) GetAPIBase() string {
 	}
 	if c.Providers.VLLM.APIKey != "" && c.Providers.VLLM.APIBase != "" {
 		return c.Providers.VLLM.APIBase
+	}
+	if c.Providers.Moonshot.APIKey != "" {
+		if c.Providers.Moonshot.APIBase != "" {
+			return c.Providers.Moonshot.APIBase
+		}
+		return "https://api.moonshot.ai/v1"
 	}
 	return ""
 }
