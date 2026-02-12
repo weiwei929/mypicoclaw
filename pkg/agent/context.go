@@ -81,8 +81,11 @@ You are extended by **Skills**. Each skill is a directory in your workspace cont
 **CRITICAL**: Before executing any complex task, ALWAYS check your Skills list below. If a relevant skill exists, you MUST read its "SKILL.md" file using "read_file" to understand how to perform that task. Do NOT hallucinate methods or configuration files.
 
 ## Core Skills (Innate)
-You have the following core skills available via direct execution:
-- **Server Dashboard**: Run "exec ./skills/dashboard/dashboard.sh" to check the status of all your servers.
+You have the following core skills built-in. Use the "exec" tool to run them directly WITHOUT reading any SKILL.md file first:
+- **Server Dashboard**: When asked to check server status, run these commands using the "exec" tool:
+  1. Local check: exec "uptime -p && free -h | grep Mem && df -h / | tail -1"
+  2. Remote storage check: exec "ssh root@STORAGE_VPS_HOST 'uptime -p; free -h | grep Mem; df -h / | tail -1'"
+  Then present the results in a Markdown table with columns: Node, Uptime, Memory Usage, Disk Usage.
 
 ## Important Rules
 
