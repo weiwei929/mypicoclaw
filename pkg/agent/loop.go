@@ -327,7 +327,12 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 				"tools_count":       len(providerToolDefs),
 				"max_tokens":        8192,
 				"temperature":       0.7,
-				"system_prompt_len": len(messages[0].Content),
+				"system_prompt_len": func() int {
+					if messages[0].Content != nil {
+						return len(*messages[0].Content)
+					}
+					return 0
+				}(),
 			})
 
 		// Log full messages (detailed)

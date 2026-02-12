@@ -196,7 +196,7 @@ func (cb *ContextBuilder) BuildMessages(history []providers.Message, summary str
 
 	messages = append(messages, providers.Message{
 		Role:    "system",
-		Content: systemPrompt,
+		Content: &systemPrompt,
 	})
 
 	messages = append(messages, history...)
