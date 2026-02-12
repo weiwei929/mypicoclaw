@@ -40,9 +40,12 @@ func (p *HTTPProvider) Chat(ctx context.Context, messages []Message, tools []Too
 		return nil, fmt.Errorf("API base not configured")
 	}
 
+	// Validate and clean message chain before sending
+	cleanMessages := p.validateMessages(messages)
+
 	requestBody := map[string]interface{}{
 		"model":    model,
-		"messages": messages,
+		"messages": cleanMessages,
 	}
 
 	if len(tools) > 0 {
@@ -170,6 +173,33 @@ func (p *HTTPProvider) parseResponse(body []byte) (*LLMResponse, error) {
 		FinishReason: choice.FinishReason,
 		Usage:        apiResponse.Usage,
 	}, nil
+}
+
+// validateMessages ensures that every 'tool' message has a matching 'assistant' message with that ID.
+func (p *HTTPProvider) validateMessages(messages []Message) []Message {
+	validIDs := make(map[string]bool)
+	validated := make([]Message, 0, len(messages))
+
+	for _, msg := range messages {
+		if msg.Role == "assistant" && len(msg.ToolCalls) > 0 {
+			for _, tc := range msg.ToolCalls {
+				validIDs[tc.ID] = true
+			}
+			validated = append(validated, msg)
+		} else if msg.Role == "tool" {
+			if validIDs[msg.ToolCallID] {
+				validated = append(validated, msg)
+			} else {
+				// Skip orphaned tool messages that would cause API errors
+				logger.WarnCF("provider", "Stripping orphaned tool message from history", map[string]interface{}{
+					"tool_call_id": msg.ToolCallID,
+				})
+			}
+		} else {
+			validated = append(validated, msg)
+		}
+	}
+	return validated
 }
 
 func (p *HTTPProvider) GetDefaultModel() string {
