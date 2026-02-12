@@ -153,7 +153,12 @@ func (p *HTTPProvider) parseResponse(body []byte) (*LLMResponse, error) {
 		}
 
 		toolCalls = append(toolCalls, ToolCall{
-			ID:        tc.ID,
+			ID:   tc.ID,
+			Type: tc.Type,
+			Function: &FunctionCall{
+				Name:      tc.Function.Name,
+				Arguments: tc.Function.Arguments,
+			},
 			Name:      name,
 			Arguments: arguments,
 		})

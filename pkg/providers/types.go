@@ -4,10 +4,8 @@ import "context"
 
 type ToolCall struct {
 	ID        string                 `json:"id"`
-	Type      string                 `json:"type,omitempty"`
-	Function  *FunctionCall          `json:"function,omitempty"`
-	// Name and Arguments are used internally for easier tool execution, 
-	// but we omit them from JSON to avoid confusing strict APIs.
+	Type      string                 `json:"type"`
+	Function  *FunctionCall          `json:"function"`
 	Name      string                 `json:"-"`
 	Arguments map[string]interface{} `json:"-"`
 }
