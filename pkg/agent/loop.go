@@ -251,7 +251,16 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 	// 4. Run LLM iteration loop
 	finalContent, iteration, err := al.runLLMIteration(ctx, messages, opts)
 	if err != nil {
-		return "", err
+		// Graceful fallback: send a user-friendly error message instead of going silent
+		fallbackMsg := al.buildErrorFallback(err)
+		logger.WarnCF("agent", "Returning graceful fallback to user",
+			map[string]interface{}{
+				"error":    err.Error(),
+				"fallback": fallbackMsg,
+			})
+		finalContent = fallbackMsg
+		// Continue to save and send the fallback message (don't return error)
+		_ = iteration
 	}
 
 	// 5. Handle empty response
@@ -434,6 +443,23 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 	}
 
 	return finalContent, iteration, nil
+}
+
+// buildErrorFallback returns a user-friendly error message based on the error type.
+func (al *AgentLoop) buildErrorFallback(err error) string {
+	errStr := err.Error()
+	switch {
+	case strings.Contains(errStr, "overloaded") || strings.Contains(errStr, "429"):
+		return "🦞 抱歉，AI 服务暂时繁忙，请稍后再试。（服务过载）"
+	case strings.Contains(errStr, "content") || strings.Contains(errStr, "policy") || strings.Contains(errStr, "safety"):
+		return "🦞 抱歉，这个请求可能触发了内容安全过滤，无法处理。请尝试换一种方式提问。"
+	case strings.Contains(errStr, "timeout") || strings.Contains(errStr, "deadline"):
+		return "🦞 抱歉，请求超时了。请稍后再试。"
+	case strings.Contains(errStr, "401") || strings.Contains(errStr, "auth"):
+		return "🦞 API 鉴权失败，请检查 API Key 配置。"
+	default:
+		return fmt.Sprintf("🦞 抱歉，处理过程中出现错误，请稍后再试。\n\n错误详情: %s", utils.Truncate(errStr, 200))
+	}
 }
 
 // updateToolContexts updates the context for tools that need channel/chatID info.

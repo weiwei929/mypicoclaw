@@ -72,33 +72,77 @@ func (p *HTTPProvider) Chat(ctx context.Context, messages []Message, tools []Too
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", p.apiBase+"/chat/completions", bytes.NewReader(jsonData))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
+	// Retry with exponential backoff for transient errors
+	maxRetries := 3
+	var lastErr error
 
-	req.Header.Set("Content-Type", "application/json")
-	if p.apiKey != "" {
-		authHeader := "Bearer " + p.apiKey
-		req.Header.Set("Authorization", authHeader)
-	}
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		if attempt > 0 {
+			backoff := time.Duration(1<<uint(attempt)) * time.Second // 2s, 4s, 8s
+			logger.WarnCF("provider", fmt.Sprintf("Retrying API call (attempt %d/%d) after %v", attempt, maxRetries, backoff),
+				map[string]interface{}{"attempt": attempt})
+			select {
+			case <-time.After(backoff):
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			}
+		}
 
-	resp, err := p.httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to send request: %w", err)
-	}
-	defer resp.Body.Close()
+		req, err := http.NewRequestWithContext(ctx, "POST", p.apiBase+"/chat/completions", bytes.NewReader(jsonData))
+		if err != nil {
+			return nil, fmt.Errorf("failed to create request: %w", err)
+		}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %w", err)
-	}
+		req.Header.Set("Content-Type", "application/json")
+		if p.apiKey != "" {
+			req.Header.Set("Authorization", "Bearer "+p.apiKey)
+		}
 
-	if resp.StatusCode != http.StatusOK {
+		resp, err := p.httpClient.Do(req)
+		if err != nil {
+			lastErr = fmt.Errorf("failed to send request: %w", err)
+			continue // Network error, retry
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			lastErr = fmt.Errorf("failed to read response: %w", err)
+			continue
+		}
+
+		if resp.StatusCode == http.StatusOK {
+			return p.parseResponse(body)
+		}
+
+		// Check if retryable
+		if p.isRetryableStatus(resp.StatusCode, body) && attempt < maxRetries {
+			lastErr = fmt.Errorf("API error (status %d): %s", resp.StatusCode, string(body))
+			logger.WarnCF("provider", "Transient API error, will retry",
+				map[string]interface{}{"status": resp.StatusCode, "body": string(body)})
+			continue
+		}
+
+		// Non-retryable or final attempt
 		return nil, fmt.Errorf("API error: %s", string(body))
 	}
 
-	return p.parseResponse(body)
+	return nil, fmt.Errorf("API call failed after %d retries: %w", maxRetries, lastErr)
+}
+
+// isRetryableStatus checks if an API error is transient and worth retrying.
+func (p *HTTPProvider) isRetryableStatus(statusCode int, body []byte) bool {
+	// HTTP-level retryable statuses
+	switch statusCode {
+	case 429, 500, 502, 503, 529:
+		return true
+	}
+	// Check for engine_overloaded in response body (Moonshot returns this as 200-level sometimes)
+	bodyStr := string(body)
+	if strings.Contains(bodyStr, "engine_overloaded") || strings.Contains(bodyStr, "overloaded") {
+		return true
+	}
+	return false
 }
 
 func (p *HTTPProvider) parseResponse(body []byte) (*LLMResponse, error) {
