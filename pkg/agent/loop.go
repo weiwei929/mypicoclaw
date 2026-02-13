@@ -232,6 +232,13 @@ func (al *AgentLoop) processSystemMessage(ctx context.Context, msg bus.InboundMe
 // runAgentLoop is the core message processing logic.
 // It handles context building, LLM calls, tool execution, and response handling.
 func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (string, error) {
+	// Check for slash commands: /new or /reset
+	msgContent := strings.TrimSpace(opts.UserMessage)
+	if msgContent == "/new" || msgContent == "/reset" {
+		al.sessions.ArchiveAndReset(opts.SessionKey)
+		return "🗑️ 已归档上文，咱们重新开始吧！", nil
+	}
+
 	// 1. Update tool contexts
 	al.updateToolContexts(opts.Channel, opts.ChatID)
 
