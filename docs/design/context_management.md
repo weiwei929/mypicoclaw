@@ -83,3 +83,19 @@ Error: API error: {"error":{"message":"Invalid request: Your request exceeded mo
 
 4.  **工具输出约束**
     - 审查 `web_search` 和 `read_url` 工具，强制执行输出长度限制。
+
+## 4. 验证与测试 (Verification & Testing)
+
+### 4.1 手动重置测试 (/new)
+1. 发送几条消息建立上下文。
+2. 发送指令：`/new`
+3. **预期**：机器人回复 "🗑️ 已归档上文..."。验证后续对话无旧记忆。
+
+### 4.2 自动归档测试 (90% Reset)
+1. 构造超长文本输入。
+2. **预期**：日志出现 "Context usage exceeds 90%"，机器人自动开启新会话。
+
+### 4.3 容灾切换测试 (Failover)
+1. 修改 `config.json`，故意填错主模型 `api_base`。
+2. 重启服务，发送消息。
+3. **预期**：日志显示 "⚡ Primary model failed..."，Gemini 接管回复。
