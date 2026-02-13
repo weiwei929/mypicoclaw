@@ -24,6 +24,10 @@ type HTTPProvider struct {
 	apiKey     string
 	apiBase    string
 	httpClient *http.Client
+	// Fallback provider for disaster recovery
+	fallbackKey   string
+	fallbackBase  string
+	fallbackModel string
 }
 
 func NewHTTPProvider(apiKey, apiBase string) *HTTPProvider {
@@ -31,9 +35,18 @@ func NewHTTPProvider(apiKey, apiBase string) *HTTPProvider {
 		apiKey:  apiKey,
 		apiBase: apiBase,
 		httpClient: &http.Client{
-			Timeout: 60 * time.Second,
+			Timeout: 120 * time.Second,
 		},
 	}
+}
+
+// NewHTTPProviderWithFallback creates a provider with automatic failover to a backup model.
+func NewHTTPProviderWithFallback(apiKey, apiBase, fallbackKey, fallbackBase, fallbackModel string) *HTTPProvider {
+	p := NewHTTPProvider(apiKey, apiBase)
+	p.fallbackKey = fallbackKey
+	p.fallbackBase = fallbackBase
+	p.fallbackModel = fallbackModel
+	return p
 }
 
 func (p *HTTPProvider) Chat(ctx context.Context, messages []Message, tools []ToolDefinition, model string, options map[string]interface{}) (*LLMResponse, error) {
@@ -41,6 +54,52 @@ func (p *HTTPProvider) Chat(ctx context.Context, messages []Message, tools []Too
 		return nil, fmt.Errorf("API base not configured")
 	}
 
+	// Try primary model first
+	resp, err := p.chatDirect(ctx, messages, tools, model, options, p.apiKey, p.apiBase)
+	if err == nil {
+		return resp, nil
+	}
+
+	// If fallback is configured and error is not a client-side issue, try fallback
+	if p.fallbackBase != "" && p.fallbackModel != "" && p.isFailoverEligible(err) {
+		logger.WarnCF("provider", fmt.Sprintf("⚡ Primary model failed, switching to fallback: %s", p.fallbackModel),
+			map[string]interface{}{
+				"primary_error":  err.Error(),
+				"fallback_model": p.fallbackModel,
+			})
+		return p.chatDirect(ctx, messages, tools, p.fallbackModel, options, p.fallbackKey, p.fallbackBase)
+	}
+
+	return nil, err
+}
+
+// isFailoverEligible determines if an error should trigger fallback to the backup model.
+// We failover on server errors, timeouts, and overload, but NOT on client errors (400, 401, 403).
+func (p *HTTPProvider) isFailoverEligible(err error) bool {
+	errStr := err.Error()
+	// Failover-worthy errors
+	if strings.Contains(errStr, "overloaded") || strings.Contains(errStr, "engine_overloaded") {
+		return true
+	}
+	if strings.Contains(errStr, "timeout") || strings.Contains(errStr, "deadline") {
+		return true
+	}
+	if strings.Contains(errStr, "500") || strings.Contains(errStr, "502") || strings.Contains(errStr, "503") || strings.Contains(errStr, "529") {
+		return true
+	}
+	if strings.Contains(errStr, "failed after") {
+		return true // All retries exhausted
+	}
+	// Do NOT failover on client errors (auth, bad request, content policy)
+	if strings.Contains(errStr, "401") || strings.Contains(errStr, "403") {
+		return false
+	}
+	return false
+}
+
+// chatDirect performs the actual HTTP call to a specific endpoint.
+// This is used by both primary and fallback paths.
+func (p *HTTPProvider) chatDirect(ctx context.Context, messages []Message, tools []ToolDefinition, model string, options map[string]interface{}, apiKey, apiBase string) (*LLMResponse, error) {
 	// Validate and clean message chain before sending
 	cleanMessages := p.validateMessages(messages)
 
@@ -88,14 +147,14 @@ func (p *HTTPProvider) Chat(ctx context.Context, messages []Message, tools []Too
 			}
 		}
 
-		req, err := http.NewRequestWithContext(ctx, "POST", p.apiBase+"/chat/completions", bytes.NewReader(jsonData))
+		req, err := http.NewRequestWithContext(ctx, "POST", apiBase+"/chat/completions", bytes.NewReader(jsonData))
 		if err != nil {
 			return nil, fmt.Errorf("failed to create request: %w", err)
 		}
 
 		req.Header.Set("Content-Type", "application/json")
-		if p.apiKey != "" {
-			req.Header.Set("Authorization", "Bearer "+p.apiKey)
+		if apiKey != "" {
+			req.Header.Set("Authorization", "Bearer "+apiKey)
 		}
 
 		resp, err := p.httpClient.Do(req)
@@ -288,7 +347,7 @@ func CreateProvider(cfg *config.Config) (LLMProvider, error) {
 		apiKey = cfg.Providers.Gemini.APIKey
 		apiBase = cfg.Providers.Gemini.APIBase
 		if apiBase == "" {
-			apiBase = "https://generativelanguage.googleapis.com/v1beta"
+			apiBase = "https://generativelanguage.googleapis.com/v1beta/openai"
 		}
 
 	case (strings.Contains(lowerModel, "glm") || strings.Contains(lowerModel, "zhipu") || strings.Contains(lowerModel, "zai")) && cfg.Providers.Zhipu.APIKey != "":
@@ -337,5 +396,60 @@ func CreateProvider(cfg *config.Config) (LLMProvider, error) {
 		return nil, fmt.Errorf("no API base configured for provider (model: %s)", model)
 	}
 
+	// Resolve fallback provider if configured
+	fallbackModel := cfg.Agents.Defaults.FallbackModel
+	if fallbackModel != "" {
+		fallbackKey, fallbackBase := resolveFallbackProvider(cfg, fallbackModel)
+		if fallbackKey != "" && fallbackBase != "" {
+			logger.InfoCF("provider", fmt.Sprintf("Failover configured: %s → %s", model, fallbackModel),
+				map[string]interface{}{
+					"primary":  model,
+					"fallback": fallbackModel,
+				})
+			return NewHTTPProviderWithFallback(apiKey, apiBase, fallbackKey, fallbackBase, fallbackModel), nil
+		}
+	}
+
 	return NewHTTPProvider(apiKey, apiBase), nil
+}
+
+// resolveFallbackProvider resolves the API key and base URL for the fallback model.
+func resolveFallbackProvider(cfg *config.Config, fallbackModel string) (string, string) {
+	lower := strings.ToLower(fallbackModel)
+
+	switch {
+	case strings.Contains(lower, "gemini"):
+		key := cfg.Providers.Gemini.APIKey
+		base := cfg.Providers.Gemini.APIBase
+		if base == "" {
+			base = "https://generativelanguage.googleapis.com/v1beta/openai"
+		}
+		return key, base
+
+	case strings.Contains(lower, "moonshot"):
+		key := cfg.Providers.Moonshot.APIKey
+		base := cfg.Providers.Moonshot.APIBase
+		if base == "" {
+			base = "https://api.moonshot.ai/v1"
+		}
+		return key, base
+
+	case strings.Contains(lower, "gpt"):
+		key := cfg.Providers.OpenAI.APIKey
+		base := cfg.Providers.OpenAI.APIBase
+		if base == "" {
+			base = "https://api.openai.com/v1"
+		}
+		return key, base
+
+	case strings.Contains(lower, "claude"):
+		key := cfg.Providers.Anthropic.APIKey
+		base := cfg.Providers.Anthropic.APIBase
+		if base == "" {
+			base = "https://api.anthropic.com/v1"
+		}
+		return key, base
+	}
+
+	return "", ""
 }

@@ -2,8 +2,10 @@ package session
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -135,6 +137,42 @@ func (sm *SessionManager) TruncateHistory(key string, keepLast int) {
 	}
 
 	session.Messages = session.Messages[len(session.Messages)-keepLast:]
+	session.Updated = time.Now()
+}
+
+// ArchiveAndReset saves the current session to an archive directory, then clears
+// the session's messages and summary. This is used when context window is near capacity.
+func (sm *SessionManager) ArchiveAndReset(key string) {
+	sm.mu.Lock()
+	defer sm.mu.Unlock()
+
+	session, ok := sm.sessions[key]
+	if !ok || len(session.Messages) == 0 {
+		return
+	}
+
+	// Archive to subdirectory
+	if sm.storage != "" {
+		archiveDir := filepath.Join(sm.storage, "archive")
+		os.MkdirAll(archiveDir, 0755)
+
+		timestamp := time.Now().Format("20060102_150405")
+		// Sanitize key for filename (replace : with _)
+		safeKey := key
+		for _, ch := range []string{":", "/", "\\"} {
+			safeKey = strings.ReplaceAll(safeKey, ch, "_")
+		}
+		archivePath := filepath.Join(archiveDir, fmt.Sprintf("%s_%s.json", safeKey, timestamp))
+
+		data, err := json.MarshalIndent(session, "", "  ")
+		if err == nil {
+			os.WriteFile(archivePath, data, 0644)
+		}
+	}
+
+	// Reset session
+	session.Messages = []providers.Message{}
+	session.Summary = ""
 	session.Updated = time.Now()
 }
 

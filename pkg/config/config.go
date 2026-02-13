@@ -35,6 +35,8 @@ type AgentDefaults struct {
 	MaxTokens         int     `json:"max_tokens" env:"MYPICOCLAW_AGENTS_DEFAULTS_MAX_TOKENS"`
 	Temperature       float64 `json:"temperature" env:"MYPICOCLAW_AGENTS_DEFAULTS_TEMPERATURE"`
 	MaxToolIterations int     `json:"max_tool_iterations" env:"MYPICOCLAW_AGENTS_DEFAULTS_MAX_TOOL_ITERATIONS"`
+	FallbackModel     string  `json:"fallback_model" env:"MYPICOCLAW_AGENTS_DEFAULTS_FALLBACK_MODEL"`
+	FallbackMaxTokens int     `json:"fallback_max_tokens" env:"MYPICOCLAW_AGENTS_DEFAULTS_FALLBACK_MAX_TOKENS"`
 }
 
 type ChannelsConfig struct {
@@ -134,10 +136,12 @@ func DefaultConfig() *Config {
 		Agents: AgentsConfig{
 			Defaults: AgentDefaults{
 				Workspace:         "~/.mypicoclaw/workspace",
-				Model:             "moonshot-v1-8k",
-				MaxTokens:         8192,
-				Temperature:       0.7,
+				Model:             "moonshot-v1-128k",
+				MaxTokens:         131072,
+				Temperature:       0.3,
 				MaxToolIterations: 20,
+				FallbackModel:     "gemini-2.0-flash",
+				FallbackMaxTokens: 1048576,
 			},
 		},
 		Channels: ChannelsConfig{

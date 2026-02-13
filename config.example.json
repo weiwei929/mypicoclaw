@@ -2,10 +2,12 @@
   "agents": {
     "defaults": {
       "workspace": "~/.mypicoclaw/workspace",
-      "model": "moonshot-v1-8k",
-      "max_tokens": 8192,
+      "model": "moonshot-v1-128k",
+      "max_tokens": 131072,
       "temperature": 0.3,
-      "max_tool_iterations": 20
+      "max_tool_iterations": 20,
+      "fallback_model": "gemini-2.0-flash",
+      "fallback_max_tokens": 1048576
     }
   },
   "channels": {
@@ -68,7 +70,7 @@
     },
     "gemini": {
       "api_key": "",
-      "api_base": ""
+      "api_base": "https://generativelanguage.googleapis.com/v1beta/openai"
     },
     "vllm": {
       "api_key": "",

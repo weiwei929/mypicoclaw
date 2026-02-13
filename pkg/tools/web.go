@@ -138,7 +138,7 @@ type WebFetchTool struct {
 
 func NewWebFetchTool(maxChars int) *WebFetchTool {
 	if maxChars <= 0 {
-		maxChars = 50000
+		maxChars = 8000
 	}
 	return &WebFetchTool{
 		maxChars: maxChars,
@@ -195,6 +195,10 @@ func (t *WebFetchTool) Execute(ctx context.Context, args map[string]interface{})
 		if int(mc) > 100 {
 			maxChars = int(mc)
 		}
+	}
+	// Cap at 20000 to prevent context overflow
+	if maxChars > 20000 {
+		maxChars = 20000
 	}
 
 	req, err := http.NewRequestWithContext(ctx, "GET", urlStr, nil)

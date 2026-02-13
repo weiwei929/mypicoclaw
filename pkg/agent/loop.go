@@ -31,6 +31,7 @@ type AgentLoop struct {
 	workspace      string
 	model          string
 	contextWindow  int           // Maximum context window size in tokens
+	temperature    float64       // LLM temperature setting
 	maxIterations  int
 	sessions       *session.SessionManager
 	contextBuilder *ContextBuilder
@@ -62,7 +63,7 @@ func NewAgentLoop(cfg *config.Config, msgBus *bus.MessageBus, provider providers
 
 	braveAPIKey := cfg.Tools.Web.Search.APIKey
 	toolsRegistry.Register(tools.NewWebSearchTool(braveAPIKey, cfg.Tools.Web.Search.MaxResults))
-	toolsRegistry.Register(tools.NewWebFetchTool(50000))
+	toolsRegistry.Register(tools.NewWebFetchTool(8000))
 
 	// Register message tool
 	messageTool := tools.NewMessageTool()
@@ -96,7 +97,8 @@ func NewAgentLoop(cfg *config.Config, msgBus *bus.MessageBus, provider providers
 		provider:       provider,
 		workspace:      workspace,
 		model:          cfg.Agents.Defaults.Model,
-		contextWindow:  cfg.Agents.Defaults.MaxTokens, // Restore context window for summarization
+		contextWindow:  cfg.Agents.Defaults.MaxTokens,
+		temperature:    cfg.Agents.Defaults.Temperature,
 		maxIterations:  cfg.Agents.Defaults.MaxToolIterations,
 		sessions:       sessionsManager,
 		contextBuilder: contextBuilder,
@@ -245,6 +247,24 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 		opts.ChatID,
 	)
 
+	// 2.5 Pre-flight check: if context usage > 90%, archive and reset
+	totalTokens := al.estimateTokens(messages)
+	threshold90 := al.contextWindow * 90 / 100
+	if totalTokens > threshold90 {
+		logger.WarnCF("agent", "Context usage exceeds 90% threshold, archiving session",
+			map[string]interface{}{
+				"estimated_tokens": totalTokens,
+				"threshold":        threshold90,
+				"context_window":   al.contextWindow,
+				"session_key":      opts.SessionKey,
+			})
+		al.sessions.ArchiveAndReset(opts.SessionKey)
+		// Re-build messages with empty history
+		messages = al.contextBuilder.BuildMessages(
+			nil, "", opts.UserMessage, nil, opts.Channel, opts.ChatID,
+		)
+	}
+
 	// 3. Save user message to session
 	al.sessions.AddMessage(opts.SessionKey, "user", opts.UserMessage)
 
@@ -361,8 +381,8 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 
 		// Call LLM
 		response, err := al.provider.Chat(ctx, messages, providerToolDefs, al.model, map[string]interface{}{
-			"max_tokens":  8192,
-			"temperature": 0.7,
+			"max_tokens":  al.contextWindow,
+			"temperature": al.temperature,
 		})
 
 		if err != nil {
@@ -461,6 +481,8 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 func (al *AgentLoop) buildErrorFallback(err error) string {
 	errStr := err.Error()
 	switch {
+	case strings.Contains(errStr, "context_length") || strings.Contains(errStr, "token limit") || strings.Contains(errStr, "exceeded") || strings.Contains(errStr, "too long"):
+		return "🦞 会话内容过长，已自动归档旧对话并开启新会话。请重新发送你的消息。"
 	case strings.Contains(errStr, "overloaded") || strings.Contains(errStr, "429"):
 		return "🦞 抱歉，AI 服务暂时繁忙，请稍后再试。（服务过载）"
 	case strings.Contains(errStr, "content") || strings.Contains(errStr, "policy") || strings.Contains(errStr, "safety"):
